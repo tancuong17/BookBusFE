@@ -1,0 +1,395 @@
+#Admin {
+    display: grid;
+    grid-template-columns: 2fr 10fr;
+}
+
+#Menu {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    background: gray;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    background: lightgray;
+    gap: 0.5rem;
+    padding: 1rem;
+    color: white;
+}
+
+.menu-item span {
+    pointer-events: none;
+}
+
+.icon {
+    font-size: 1.5rem;
+}
+
+.header {
+    display: flex;
+    padding: 0.5rem 0;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.button {
+    align-items: center;
+    width: auto;
+    padding: 0 0.5rem;
+    height: 2rem;
+    background: black;
+    color: white;
+    border: 1px solid black;
+}
+
+.button:hover {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#BusLine {
+    height: 100vh;
+    display: grid;
+    padding: 0.5rem;
+    grid-template-rows: 2fr 2fr 17fr;
+}
+
+.title {
+    font-size: 1.2rem;
+}
+
+.title-container {
+    display: flex;
+    height: auto;
+    padding: 0.5rem 0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table {
+    height: 100%;
+}
+
+.table::-webkit-scrollbar {
+    width: 6px;
+    background-color: #F5F5F5;
+}
+
+.table::-webkit-scrollbar-thumb {
+    background-color: #000000;
+}
+
+table {
+    border: 1px solid lightgray;
+    border-collapse: collapse;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: auto;
+    position: relative;
+    overflow-y: auto;
+}
+
+table tr {
+    background-color: white;
+    border: 1px solid gray;
+    padding: .35em;
+}
+
+table th {
+    padding: .625em;
+    text-align: center;
+    position: sticky;
+    top: -0.1px;
+    background: gray;
+    border: 1px solid gray;
+    color: white;
+    font-size: .85em;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+table td {
+    padding: .300em;
+    text-align: center;
+}
+
+.search-form {
+    width: auto;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    justify-content: space-between;
+    border: 1px solid black;
+    overflow: hidden;
+}
+
+.search-form input {
+    width: 100%;
+    height: 2rem;
+    padding: 0.3rem;
+    border: none;
+    outline: none;
+}
+
+.search-form select {
+    border: none;
+    outline: none;
+    font-size: 1rem;
+}
+
+.modal-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.exit-icon{
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: cover;
+}
+
+.modal{
+    display: grid;
+    grid-template-rows: 1fr 10fr 1fr;
+    width: 95%;
+    height: 95%;
+    background: white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#search-exit-container{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.header-modal{
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    justify-content: space-between;
+}
+
+.body-modal{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+.footer-modal{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+}
+
+#bus-trip-modal{
+    display: none;
+}
+
+#add-bus-trip-modal{
+    display: none;
+}
+
+#add-bus-line-modal{
+    display: none;
+}
+
+#detail-bus-line-modal{
+    display: none;
+}
+
+#price-table-modal{
+    display: none;
+}
+
+#add-price-table-modal{
+    display: none;
+    z-index: 100;
+}
+
+#promotion-table-modal{
+    display: none;
+}
+
+#detail-promotion-modal{
+    display: none;
+}
+
+#detail-ticket-modal{
+    display: none;
+}
+
+#add-area-modal{
+    display: none;
+}
+
+#add-bus-stop-modal{
+    display: none;
+}
+
+#bus-stop-modal{
+    display: none;
+}
+
+#add-bus-trip-modal .modal{
+    width: 35%;
+    height: 50%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#add-area-modal .modal{
+    width: 40%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#detail-ticket-modal .modal{
+    width: 35%;
+    height: 95%;
+    display: grid;
+    grid-template-rows: 1fr 10fr 1fr;
+}
+
+#detail-promotion-modal .modal{
+    width: 40%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#add-bus-line-modal .modal{
+    width: 40%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#detail-bus-line-modal .modal{
+    width: 35%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#add-bus-stop-modal .modal{
+    width: 40%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#add-price-table-modal .modal{
+    width: 35%;
+    height: 60%;
+    display: grid;
+    grid-template-rows: 1fr 5fr 1fr;
+}
+
+#bus-stop-modal .modal{
+    width: 70%;
+    height: 90%;
+    display: grid;
+    grid-template-rows: 1fr 8fr 1fr;
+}
+
+.input-modal{
+    display: grid;
+    align-items: center;
+    grid-template-columns: 2fr 5fr;
+}
+
+.input-modal select, .input-modal input{
+    font-size: 1rem;
+    padding: 0.5rem;
+}
+
+.input-modal img{
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+}
+
+.title-ticket{
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.address{
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+@media screen and (max-width: 600px) {
+    #Admin {
+        grid-template-columns: 1fr;
+    }
+
+    #Menu {
+        display: none;
+    }
+
+    table {
+        border: 0;
+    }
+
+    table caption {
+        font-size: 1.3em;
+    }
+
+    table thead {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    table tr {
+        border-bottom: 3px solid #ddd;
+        display: block;
+        margin-bottom: .625em;
+    }
+
+    table td {
+        border-bottom: 1px solid #ddd;
+        display: block;
+        font-size: .8em;
+        text-align: right;
+    }
+
+    table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    table td:last-child {
+        border-bottom: 0;
+    }
+}
