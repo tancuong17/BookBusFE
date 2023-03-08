@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import '../App.css';
 import axios from 'axios';
-import data from "../Data/local.json";
+import { TbBus } from 'react-icons/tb';
+import { SiCashapp } from 'react-icons/si';
+import { RxUpdate } from 'react-icons/rx';
 
 function BusLine() {
   const [titleBusTripModal, setTitleBusTripModal] = new useState();
+  const [titlePriceTableModal, setTitlePriceTableModal] = new useState();
+  const [titleUpdateBusLineModal, setTitleUpdateBusLineModal] = new useState();
   const [busTrips, setBusTrips] = new useState(new Array());
   const [buses, setBuses] = new useState(new Array());
+  const [prices, setPrices] = new useState(new Array());
   const [places, setPlaces] = new useState(new Array());
   const [routes, setRoutes] = new useState(new Array());
   const [routeChoosed, setRouteChoosed] = new useState();
@@ -27,7 +32,11 @@ function BusLine() {
       .then((res) => {
         setBuses(res.data);
       })
-  }, [routes, busTrips]);
+    axios.get('http://localhost:5005/prices/all/getPrice')
+      .then((res) => {
+        setPrices(res.data);
+      })
+  }, [routes, busTrips, prices]);
   function OpenBusTripModal(routeId, departureName, destinationName) {
     document.getElementById("bus-trip-modal").style.display = "flex";
     routes.map(route => {
@@ -40,10 +49,24 @@ function BusLine() {
     document.getElementById("bus-trip-modal").style.display = "none";
   }
   function OpenAddBusTripModal() {
-    document.getElementById("add-bus-trip-modal").style.display = "flex";
+    if (routeChoosed.status)
+      document.getElementById("add-bus-trip-modal").style.display = "flex";
+    else
+      alert("Tuyến xe này đã ngừng hoạt động không thể tạo chuyến!")
   }
   function CloseAddBusTripModal() {
     document.getElementById("add-bus-trip-modal").style.display = "none";
+  }
+  function OpenUpdateBusLineModal(routeId, departureName, destinationName) {
+    routes.map(route => {
+      if (route._id === routeId)
+        setRouteChoosed(route);
+    })
+    setTitleUpdateBusLineModal("Cập nhật tuyến xe " + departureName + " đến " + destinationName);
+    document.getElementById("update-bus-line-modal").style.display = "flex";
+  }
+  function CloseUpdateBusLineModal() {
+    document.getElementById("update-bus-line-modal").style.display = "none";
   }
   function OpenAddBusLineModal() {
     document.getElementById("add-bus-line-modal").style.display = "flex";
@@ -51,12 +74,13 @@ function BusLine() {
   function CloseAddBusLineModal() {
     document.getElementById("add-bus-line-modal").style.display = "none";
   }
-  function CloseDetailBusLineModal() {
-    document.getElementById("detail-bus-line-modal").style.display = "none";
-  }
-  function OpenPriceTableModal() {
+  function OpenPriceTableModal(routeId, departureName, destinationName) {
     document.getElementById("price-table-modal").style.display = "flex";
-    CloseDetailBusLineModal();
+    routes.map(route => {
+      if (route._id === routeId)
+        setRouteChoosed(route);
+    })
+    setTitlePriceTableModal("Bảng giá của tuyến " + departureName + " đến " + destinationName);
   }
   function ClosePriceTableModal() {
     document.getElementById("price-table-modal").style.display = "none";
@@ -121,11 +145,48 @@ function BusLine() {
         })
     }
   }
+  function UpdateBusLine() {
+    let typeBusUpdate = document.getElementById("typeBusUpdate").value;
+    let timeBusLineUpdate = document.getElementById("timeBusLineUpdate").value;
+    let statusBusLineUpdate = document.getElementById("statusBusLineUpdate").value;
+    let data = {
+      typeBusUpdate: typeBusUpdate,
+      timeBusLineUpdate: timeBusLineUpdate,
+      routeId: routeChoosed._id,
+      statusBusLineUpdate: statusBusLineUpdate
+    }
+    axios.post('http://localhost:5005/places/updateRoute', data)
+      .then((res) => {
+        alert("Cập nhật tuyến thành công!");
+        CloseUpdateBusLineModal();
+      })
+  }
+  function AddPrice() {
+    let namePrice = document.getElementById("namePrice").value;
+    let startDatePrice = document.getElementById("startDatePrice").value;
+    let endDatePrice = document.getElementById("endDatePrice").value;
+    let ticketPrice = document.getElementById("ticketPrice").value;
+    let data = {
+      startDate: startDatePrice,
+      endDate: endDatePrice,
+      priceTicket: ticketPrice,
+      routeId: routeChoosed._id,
+      title: namePrice
+    }
+    axios.post('http://localhost:5005/prices/addPrice', data)
+      .then((res) => {
+        alert("Thêm bảng giá thành công!");
+        CloseAddPriceTableModal();
+      })
+  }
   return (
-    <section id="BusLine">
+    <section class="component">
       <div className='header'>
-        <span>Xin chào, Tấn</span>
-        <button className='button'>Đăng xuất</button>
+        <p id="logo">FURISAS</p>
+        <div>
+          <span>Xin chào, Tấn</span>
+          <button className='button' style={{ background: "#CC0000", border: "1px solid #CC0000" }}>Đăng xuất</button>
+        </div>
       </div>
       <div className='title-container'>
         <span className='title'>Danh sách tuyến xe</span>
@@ -144,7 +205,7 @@ function BusLine() {
             </select>
             <button className='button'>Tìm</button>
           </div>
-          <button className='button' onClick={OpenAddBusLineModal}>Thêm tuyến xe</button>
+          <button className='button' style={{ background: "#330099", border: "1px solid #330099" }} onClick={OpenAddBusLineModal}>Thêm tuyến xe</button>
         </div>
       </div>
       <div className='table'>
@@ -156,6 +217,8 @@ function BusLine() {
               <th scope="col">Nơi đến</th>
               <th scope="col">Loại xe</th>
               <th scope="col">Số giờ</th>
+              <th scope="col">Giá vé</th>
+              <th scope="col">Trạng thái</th>
               <th scope="col"></th>
             </tr>
           </thead>
@@ -168,9 +231,12 @@ function BusLine() {
                   <td data-label="Nơi đến">{route.destination.name}</td>
                   <td data-label="Loại xe">{route.carType}</td>
                   <td data-label="Số giờ">{route.intendTime}</td>
+                  <td data-label="Giá vé">{route.price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
+                  <td data-label="Trạng thái">{(route.status) ? "Đang hoạt động" : "Ngưng hoạt động"}</td>
                   <td data-label="" className='button-container'>
-                    <button className='button' onClick={() => OpenBusTripModal(route._id, route.departure.name, route.destination.name)}>Chuyến xe</button>
-                    <button className='button' onClick={OpenPriceTableModal}>Bảng giá</button>
+                    <button style={{ background: "#006633", border: "1px solid #006633" }} className='button' onClick={() => OpenBusTripModal(route._id, route.departure.name, route.destination.name)}><TbBus className='icon' /></button>
+                    <button style={{ background: "#FF9900", border: "1px solid #FF9900" }} className='button' onClick={() => OpenPriceTableModal(route._id, route.departure.name, route.destination.name)}><SiCashapp className='icon' /></button>
+                    <button className='button' onClick={() => OpenUpdateBusLineModal(route._id, route.departure.name, route.destination.name)}><RxUpdate className='icon' /></button>
                   </td>
                 </tr>
               })
@@ -292,8 +358,8 @@ function BusLine() {
             <div className='input-modal'>
               <span>Loại xe:</span>
               <select id="typeBus">
-                <option value={'63b281f4d571739a200fac6c'}>Xe Limousine</option>
-                <option value={'63b285db42d513adac65bcb5'}>Xe Thường</option>
+                <option value={'63b285db42d513adac65bcb5'}>Xe Limousine</option>
+                <option value={'63b281f4d571739a200fac6c'}>Xe Thường</option>
               </select>
             </div>
             <div className='input-modal'>
@@ -306,6 +372,37 @@ function BusLine() {
           </div>
         </div>
       </div>
+      <div className='modal-container' id='update-bus-line-modal'>
+        <div className='modal'>
+          <div className='header-modal'>
+            <span>{titleUpdateBusLineModal}</span>
+            <img className='exit-icon' onClick={CloseUpdateBusLineModal} src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
+          </div>
+          <div className='body-modal'>
+            <div className='input-modal'>
+              <span>Loại xe:</span>
+              <select id="typeBusUpdate">
+                <option value={'63b285db42d513adac65bcb5'}>Xe Limousine</option>
+                <option value={'63b281f4d571739a200fac6c'}>Xe Thường</option>
+              </select>
+            </div>
+            <div className='input-modal'>
+              <span>Số giờ:</span>
+              <input type={'number'} defaultValue={0} min={0} id="timeBusLineUpdate" />
+            </div>
+            <div className='input-modal'>
+              <span>Trạng thái:</span>
+              <select id="statusBusLineUpdate">
+                <option value={true}>Đang hoạt động</option>
+                <option value={false}>Ngưng hoạt động</option>
+              </select>
+            </div>
+          </div>
+          <div className='footer-modal'>
+            <button className='button' onClick={UpdateBusLine}>Cập nhật</button>
+          </div>
+        </div>
+      </div>
       <div className='modal-container' id='add-price-table-modal'>
         <div className='modal'>
           <div className='header-modal'>
@@ -314,27 +411,31 @@ function BusLine() {
           </div>
           <div className='body-modal'>
             <div className='input-modal'>
+              <span>Tên bảng giá:</span>
+              <input id="namePrice" />
+            </div>
+            <div className='input-modal'>
               <span>Ngày bắt đầu:</span>
-              <input type={'date'} />
+              <input type={'date'} id="startDatePrice" />
             </div>
             <div className='input-modal'>
               <span>Ngày kết thúc:</span>
-              <input type={'date'} />
+              <input type={'date'} id="endDatePrice" />
             </div>
             <div className='input-modal'>
               <span>Giá vé:</span>
-              <input type={'number'} value={0} min={0} />
+              <input type={'number'} defaultValue={0} min={0} id="ticketPrice" />
             </div>
           </div>
           <div className='footer-modal'>
-            <button className='button'>Thêm bảng giá</button>
+            <button className='button' onClick={AddPrice}>Thêm bảng giá</button>
           </div>
         </div>
       </div>
       <div className='modal-container' id='price-table-modal'>
         <div className='modal'>
           <div className='header-modal'>
-            <span>Bảng giá</span>
+            <span>{titlePriceTableModal}</span>
             <div id='search-exit-container'>
               <div className='search-form'>
                 <input placeholder='Mã bảng giá...' />
@@ -349,27 +450,35 @@ function BusLine() {
                 <thead>
                   <tr>
                     <th scope="col">Mã bảng giá</th>
+                    <th scope="col">Tên bảng giá</th>
                     <th scope="col">Ngày bắt đầu</th>
                     <th scope="col">Ngày kết thúc</th>
                     <th scope="col">Giá vé</th>
                     <th scope="col">Trạng thái</th>
+                    <th scope="col"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td data-label="Mã bảng giá">001</td>
-                    <td data-label="Ngày bắt đầu">14/12/2008</td>
-                    <td data-label="Ngày kết thúc">14/12/2008</td>
-                    <td data-label="Giá vé">200,000đ</td>
-                    <td data-label="Trạng thái">Đang sử dụng</td>
-                  </tr>
+                  {
+                    prices.map(price => {
+                      if (routeChoosed != null && price.route._id === routeChoosed._id)
+                        return <tr>
+                          <td data-label="Mã bảng giá">{price._id}</td>
+                          <td data-label="Tên bảng giá">{price.title}</td>
+                          <td data-label="Ngày bắt đầu">{new Date(new Date(price.startDate).getTime() - 7 * 3600 * 1000).toLocaleDateString()}</td>
+                          <td data-label="Ngày kết thúc">{new Date(new Date(price.endDate).getTime() - 7 * 3600 * 1000).toLocaleDateString()}</td>
+                          <td data-label="Giá vé">{price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
+                          <td data-label="Trạng thái">{(new Date(new Date(price.startDate).getTime() - 7 * 3600 * 1000) <= new Date().getTime() && new Date(new Date(price.endDate).getTime() - 7 * 3600 * 1000).getTime() >= new Date().getTime()) ? "Đang sử dụng" : "Không sử dụng"}</td>
+                          <td data-label=""><button className='button'>Cập nhật</button></td>
+                        </tr>
+                    })
+                  }
                 </tbody>
               </table>
             </div>
           </div>
           <div className='footer-modal'>
             <button className='button' onClick={OpenAddPriceTableModal}>Thêm bảng giá</button>
-            <button className='button'>Cập nhật</button>
           </div>
         </div>
       </div>

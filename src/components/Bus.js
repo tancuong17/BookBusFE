@@ -3,10 +3,13 @@ import '../App.css';
 
 function Bus() {
     return (
-        <section id="BusLine">
+        <section class="component">
             <div className='header'>
-                <span>Xin chào, Tấn</span>
-                <button className='button'>Đăng xuất</button>
+                <p id="logo">FURISAS</p>
+                <div>
+                    <span>Xin chào, Tấn</span>
+                    <button className='button' style={{background: "#CC0000", border: "1px solid #CC0000"}}>Đăng xuất</button>
+                </div>
             </div>
             <div className='title-container'>
                 <span className='title'>Danh sách xe khách</span>

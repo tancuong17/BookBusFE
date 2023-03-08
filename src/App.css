@@ -8,7 +8,8 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    background: gray;
+    background: #000033;
+    border-radius: 0 1.5rem 1.5rem 0;
 }
 
 .menu-item {
@@ -28,36 +29,49 @@
     font-size: 1.5rem;
 }
 
+#logo{
+    font-size: 1.5rem;
+}
+
 .header {
     display: flex;
     padding: 0.5rem 0;
     gap: 0.5rem;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header div{
+    display: flex;
+    gap: 0.5rem;
     align-items: center;
 }
 
 .button-container {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     gap: 0.5rem;
 }
 
 .button {
+    display: flex;
     align-items: center;
+    overflow: hidden;
     width: auto;
     padding: 0 0.5rem;
     height: 2rem;
     background: black;
     color: white;
     border: 1px solid black;
+    border-radius: 0.3rem;
 }
 
 .button:hover {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
-#BusLine {
+.component {
     height: 100vh;
     display: grid;
     padding: 0.5rem;
@@ -133,6 +147,7 @@ table td {
     justify-content: space-between;
     border: 1px solid black;
     overflow: hidden;
+    border-radius: 0.3rem;
 }
 
 .search-form input {
@@ -214,10 +229,6 @@ table td {
     display: none;
 }
 
-#detail-bus-line-modal{
-    display: none;
-}
-
 #price-table-modal{
     display: none;
 }
@@ -251,12 +262,17 @@ table td {
     display: none;
 }
 
+#update-bus-line-modal{
+    display: none;
+}
+
 #add-bus-trip-modal .modal{
     width: 35%;
     height: 50%;
     display: grid;
     grid-template-rows: 1fr 5fr 1fr;
 }
+
 
 #add-area-modal .modal{
     width: 40%;
@@ -267,14 +283,14 @@ table td {
 
 #detail-ticket-modal .modal{
     width: 35%;
-    height: 95%;
+    height: 80%;
     display: grid;
-    grid-template-rows: 1fr 10fr 1fr;
+    grid-template-rows: 1fr 8fr 1fr;
 }
 
 #detail-promotion-modal .modal{
-    width: 40%;
-    height: 60%;
+    width: 50%;
+    height: 80%;
     display: grid;
     grid-template-rows: 1fr 5fr 1fr;
 }
@@ -286,12 +302,13 @@ table td {
     grid-template-rows: 1fr 5fr 1fr;
 }
 
-#detail-bus-line-modal .modal{
-    width: 35%;
-    height: 60%;
+#update-bus-line-modal .modal{
+    width: 30%;
+    height: 50%;
     display: grid;
     grid-template-rows: 1fr 5fr 1fr;
 }
+
 
 #add-bus-stop-modal .modal{
     width: 40%;

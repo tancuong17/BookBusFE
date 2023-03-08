@@ -1,10 +1,36 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import '../App.css';
 import { useReactToPrint } from 'react-to-print';
+import axios from 'axios';
 
 function Ticket() {
   const componentRef = useRef();
-  function OpenTicketModal() {
+  const [tickets, setTickets] = new useState(new Array());
+  useEffect(() => {
+    axios.get('http://localhost:5005/tickets/all/getTicket')
+      .then((res) => {
+        setTickets(res.data);
+      });
+  }, [tickets]);
+  function OpenTicketModal(idTicket) {
+    tickets.map(ticket => {
+      if (ticket._id === idTicket) {
+        let chairs = new Array();
+        ticket.chair.map(chair => {
+          chairs.push(chair.seats);
+        });
+        document.getElementById("id").innerHTML = ticket._id;
+        document.getElementById("name").innerHTML = ticket.firstName + " " + ticket.lastName;
+        document.getElementById("phonenumber").innerHTML = ticket.phoneNumber;
+        document.getElementById("route").innerHTML = ticket.departure.name + " đến " + ticket.destination.name;
+        document.getElementById("bus").innerHTML = ticket.licensePlates;
+        document.getElementById("startDate").innerHTML = new Date(new Date(ticket.startDate).getTime() - 7 * 3600 * 1000).toLocaleString();
+        document.getElementById("chairs").innerHTML = chairs.toString();
+        document.getElementById("busStop1").innerHTML = ticket.locaDeparture.address.name;
+        document.getElementById("total").innerHTML = (ticket.chair.length * ticket.price).toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") + "đ";
+        document.getElementById("status").innerHTML = (ticket.status) ? "Đã thanh toán" : "Đã hủy";
+      }
+    })
     document.getElementById("detail-ticket-modal").style.display = "flex";
   }
   function CloseTicketModal() {
@@ -14,10 +40,13 @@ function Ticket() {
     content: () => componentRef.current,
   });
   return (
-    <section id="BusLine">
+    <section class="component">
       <div className='header'>
-        <span>Xin chào, Tấn</span>
-        <button className='button'>Đăng xuất</button>
+        <p id="logo">FURISAS</p>
+        <div>
+          <span>Xin chào, Tấn</span>
+          <button className='button' style={{background: "#CC0000", border: "1px solid #CC0000"}}>Đăng xuất</button>
+        </div>
       </div>
       <div className='title-container'>
         <span className='title'>Danh sách vé xe</span>
@@ -39,16 +68,20 @@ function Ticket() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td data-label="Mã vé">001</td>
-              <td data-label="Khách hàng">Nguyễn Hoàng Đức</td>
-              <td data-label="Số điện thoại">0325856985</td>
-              <td data-label="Ngày đặt">14:00:00 25/03/2007</td>
-              <td data-label="Trạng thái">Đã thanh toán</td>
-              <td data-label="" className='button-container'>
-                <button onClick={OpenTicketModal} className='button'>Chi tiết</button>
-              </td>
-            </tr>
+            {
+              tickets.map(ticket => {
+                return <tr>
+                  <td data-label="Mã vé">{ticket._id}</td>
+                  <td data-label="Khách hàng">{ticket.firstName + " " + ticket.lastName}</td>
+                  <td data-label="Số điện thoại">{ticket.phoneNumber}</td>
+                  <td data-label="Ngày đặt">{new Date(new Date(ticket.createdAt).getTime() - 7 * 3600 * 1000).toLocaleString()}</td>
+                  <td data-label="Trạng thái">Đã thanh toán</td>
+                  <td data-label="" className='button-container'>
+                    <button onClick={() => OpenTicketModal(ticket._id)} className='button'>Chi tiết</button>
+                  </td>
+                </tr>
+              })
+            }
           </tbody>
         </table>
       </div>
@@ -62,48 +95,44 @@ function Ticket() {
             <p class="title-ticket">Nhà xe FURISAS</p>
             <p class="address">Đ/c: 160 Quang Trung, phường 10, Gò Vấp, tp.Hồ Chí Minh<br />Hotline: 1900 1800</p>
             <div className='input-modal'>
+              <span>Mã vé:</span>
+              <span id="id"></span>
+            </div>
+            <div className='input-modal'>
               <span>Họ và tên:</span>
-              <span>Nguyễn Tấn Cường</span>
+              <span id="name"></span>
             </div>
             <div className='input-modal'>
               <span>Số điện thoại:</span>
-              <span>0382578556</span>
+              <span id="phonenumber"></span>
             </div>
             <div className='input-modal'>
               <span>Tuyến:</span>
-              <span>Sài Gòn đi Đà Lạt</span>
+              <span id="route">Sài Gòn đi Đà Lạt</span>
             </div>
             <div className='input-modal'>
               <span>Xe:</span>
-              <span>51H-45263</span>
+              <span id="bus">51H-45263</span>
             </div>
             <div className='input-modal'>
               <span>Ngày lên xe:</span>
-              <span>14:00:00 20/02/2008</span>
+              <span id="startDate">14:00:00 20/02/2008</span>
             </div>
             <div className='input-modal'>
               <span>Danh sách ghế:</span>
-              <span>A-01, A-02</span>
+              <span id="chairs">A-01, A-02</span>
             </div>
             <div className='input-modal'>
               <span>Điểm lên:</span>
-              <span>Bến xe Miền Đông</span>
-            </div>
-            <div className='input-modal'>
-              <span>Điểm xuống:</span>
-              <span>Bến xe Đà Lạt</span>
+              <span id="busStop1">Bến xe Miền Đông</span>
             </div>
             <div className='input-modal'>
               <span>Tổng tiền:</span>
-              <span>500,000đ</span>
+              <span id="total">500,000đ</span>
             </div>
             <div className='input-modal'>
               <span>Trạng thái:</span>
-              <span>Đã thanh toán</span>
-            </div>
-            <div className='input-modal'>
-              <span>Mã vé:</span>
-              <img src='https://www.qrcode-gen.com/images/qrcode-default.png' alt='bar-code' />
+              <span id="status">Đã thanh toán</span>
             </div>
           </div>
           <div className='footer-modal'>

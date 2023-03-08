@@ -13,42 +13,42 @@ function Menu() {
         let path = window.location.pathname;
         let menuItem = document.getElementsByClassName("menu-item");
         for (let i = 0; i < menuItem.length; i++) {
-            menuItem[i].style.background = "gray";
+            menuItem[i].style.background = "#000033";
             menuItem[i].style.color = "white";
         }
         if(path === "/admin"){
             menuItem[0].style.background = "white";
-            menuItem[0].style.color = "black";
+            menuItem[0].style.color = "#000033";
         }
         else if(path === "/admin/ticket"){
             menuItem[1].style.background = "white";
-            menuItem[1].style.color = "black";
+            menuItem[1].style.color = "#000033";
         }
         else if(path === "/admin/busStop"){
             menuItem[2].style.background = "white";
-            menuItem[2].style.color = "black";
+            menuItem[2].style.color = "#000033";
         }
         else if(path === "/admin/customer"){
             menuItem[3].style.background = "white";
-            menuItem[3].style.color = "black";
+            menuItem[3].style.color = "#000033";
         }
         else if(path === "/admin/bus"){
             menuItem[4].style.background = "white";
-            menuItem[4].style.color = "black";
+            menuItem[4].style.color = "#000033";
         }
         else if(path === "/admin/promotion"){
             menuItem[5].style.background = "white";
-            menuItem[5].style.color = "black";
+            menuItem[5].style.color = "#000033";
         }
     }, [])
     function ChooseMenu(e) {
         let menuItem = document.getElementsByClassName("menu-item");
         for (let i = 0; i < menuItem.length; i++) {
-            menuItem[i].style.background = "gray";
+            menuItem[i].style.background = "#000033";
             menuItem[i].style.color = "white";
         }
         e.target.style.background = "white";
-        e.target.style.color = "black";
+        e.target.style.color = "#000033";
     }
     return (
         <>
