@@ -8,6 +8,7 @@ import Ticket from './Ticket';
 import Customer from './Customer';
 import Bus from './Bus';
 import Promotion from './Promotion';
+import Statistical from './Statistical';
 
 function Admin() {
     return (
@@ -20,6 +21,7 @@ function Admin() {
                 <Route path='/customer' element={<Customer />} />
                 <Route path='/bus' element={<Bus />} />
                 <Route path='/promotion' element={<Promotion />} />
+                <Route path='/statistical' element={<Statistical />} />
             </Routes>
         </section>
     );

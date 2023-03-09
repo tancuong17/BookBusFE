@@ -91,7 +91,10 @@
 }
 
 .table {
+    position: relative;
     height: 100%;
+    border-radius: 0.3rem;
+    border: 1px solid gray;
 }
 
 .table::-webkit-scrollbar {
@@ -104,14 +107,21 @@
 }
 
 table {
-    border: 1px solid lightgray;
-    border-collapse: collapse;
     margin: 0;
-    padding: 0;
     width: 100%;
     height: auto;
     position: relative;
     overflow-y: auto;
+}
+
+thead th:first-child{
+    border-radius: 0.3rem 0 0 0;
+    background: gray;
+}
+
+thead th:last-child{
+    border-radius: 0 0.3rem 0 0;
+    background: gray;
 }
 
 table tr {
@@ -221,9 +231,6 @@ table td {
     display: none;
 }
 
-#add-bus-trip-modal{
-    display: none;
-}
 
 #add-bus-line-modal{
     display: none;
@@ -262,23 +269,117 @@ table td {
     display: none;
 }
 
+#add-promotion-modal {
+    display: none;
+}
+
 #update-bus-line-modal{
     display: none;
 }
 
-#add-bus-trip-modal .modal{
+#add-bus-trip-modal{
+    display: none;
+}
+
+
+#add-bus-modal{
+    display: none;
+}
+
+#book-ticket-modal{
+    display: none;
+}
+
+#add-bus-modal .modal{
+    width: 30%;
+    height: 45%;
+    display: grid;
+    grid-template-rows: 1fr 3fr 1fr;
+}
+
+ .modal{
     width: 35%;
     height: 50%;
     display: grid;
     grid-template-rows: 1fr 5fr 1fr;
+    border-radius: 0.5rem;
 }
 
+#bus-trip-modal .modal{
+    width: 80%;
+    height: 90%;
+    display: grid;
+    grid-template-rows: 1fr 8fr 1fr;
+}
+
+#book-ticket-modal .modal{
+    width: 75%;
+    height: 80%;
+    display: grid;
+    gap: 0.5rem;
+    grid-template-rows: 1fr 7fr 1fr;
+    z-index: 500;
+}
+
+#book-ticket-modal td{
+    transform: rotate(90deg);
+}
+
+#chair-container{
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: 1fr 1fr;
+}
+
+.floor{
+    display: grid;
+    grid-template-rows: 1fr 6fr;
+    border: 1px solid lightgray;
+}
+
+#info-customer-form{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid lightgray;
+}
+
+#address-customer{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+#address-customer select{
+    border: none;
+    outline: none;
+}
+
+#book-ticket-modal .body-modal{
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+#price-table-modal .modal{
+    width: 90%;
+    height: 90%;
+    display: grid;
+    grid-template-rows: 1fr 8fr 1fr;
+}
 
 #add-area-modal .modal{
     width: 40%;
     height: 60%;
     display: grid;
     grid-template-rows: 1fr 5fr 1fr;
+}
+
+#add-promotion-modal .modal{
+    width: 50%;
+    height: 90%;
+    display: grid;
+    grid-template-rows: 1fr 8fr 1fr;
 }
 
 #detail-ticket-modal .modal{

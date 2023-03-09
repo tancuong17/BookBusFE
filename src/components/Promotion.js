@@ -4,12 +4,17 @@ import axios from 'axios';
 
 function Promotion() {
     const [promotions, setPromotions] = new useState(new Array());
+    const [routes, setRoutes] = new useState(new Array());
     const [promotionChoosed, setPromotionChoosed] = new useState(new Array());
     useEffect(() => {
         axios.get('http://localhost:5005/promotions/all/getPromotion')
             .then((res) => {
                 setPromotions(res.data);
             });
+        axios.get('http://localhost:5005/places/all/getRoute')
+            .then((res) => {
+                setRoutes(res.data);
+            })
     }, [promotions]);
     function OpenDetailPromotionModal(promotionId) {
         promotions.map(promotion => {
@@ -20,6 +25,93 @@ function Promotion() {
     }
     function CloseDetailPromotionModal() {
         document.getElementById("detail-promotion-modal").style.display = "none";
+    }
+    function OpenAddPromotionModal() {
+        document.getElementById("add-promotion-modal").style.display = "flex";
+        ChooseTypePromotion();
+        ChooseWayPromotion();
+    }
+    function CloseAddPromotionModal() {
+        document.getElementById("add-promotion-modal").style.display = "none";
+    }
+    function AddPromotion() {
+        let typePromotion = document.getElementById("add-promotion-modal").value;
+        let namePromotion = document.getElementById("namePromotion").value;
+        let wayPromotion = document.getElementById("wayPromotion").value;
+        let routePromotion = document.getElementById("routePromotion").value;
+        let priceTicketStandard = document.getElementById("priceTicketStandard").value;
+        let quantityTicketDiscount = document.getElementById("quantityTicketDiscount").value;
+        let percentDiscount = document.getElementById("percentDiscount").value;
+        let moneyDiscount = document.getElementById("moneyDiscount").value;
+        let budget = document.getElementById("budget").value;
+        let startDatePromotion = document.getElementById("startDatePromotion").value;
+        let endDatePromotion = document.getElementById("endDatePromotion").value;
+        if (wayPromotion == "0")
+            quantityTicketDiscount = null;
+        else
+            priceTicketStandard = null;
+        if (typePromotion == "63c252a602c477dd6927806c") {
+            let data = {
+                startDate: startDatePromotion,
+                endDate: endDatePromotion,
+                percentDiscount: percentDiscount,
+                routeId: routePromotion,
+                quantityTicket: quantityTicketDiscount,
+                title: namePromotion,
+                purchaseAmount: null,
+                moneyReduced: null,
+                maximumDiscount: priceTicketStandard,
+                budget: budget,
+                promotionType: typePromotion,
+            };
+            axios.post('http://localhost:5005/promotions/addPromotion', data)
+            .then((res) => {
+                alert("Thêm khuyến mãi thành công!");
+                CloseAddPromotionModal();
+            })
+        }
+        else {
+            let data = {
+                startDate: startDatePromotion,
+                endDate: endDatePromotion,
+                percentDiscount: null,
+                routeId: routePromotion,
+                quantityTicket: quantityTicketDiscount,
+                title: namePromotion,
+                purchaseAmount: priceTicketStandard,
+                moneyReduced: moneyDiscount,
+                maximumDiscount: null,
+                budget: budget,
+                promotionType: typePromotion,
+            };
+            axios.post('http://localhost:5005/promotions/addPromotion', data)
+            .then((res) => {
+                alert("Thêm khuyến mãi thành công!");
+                CloseAddPromotionModal();
+            })
+        }
+    }
+    function ChooseTypePromotion() {
+        let typePromotion = document.getElementById("typePromotion").value;
+        if (typePromotion == "63c252a602c477dd6927806c") {
+            document.getElementById("percent-container").style.display = "grid";
+            document.getElementById("money-container").style.display = "none";
+        }
+        else {
+            document.getElementById("money-container").style.display = "grid";
+            document.getElementById("percent-container").style.display = "none";
+        }
+    }
+    function ChooseWayPromotion() {
+        let wayPromotion = document.getElementById("wayPromotion").value;
+        if (wayPromotion == "0") {
+            document.getElementById("priceTicketPromotion").style.display = "grid";
+            document.getElementById("quantityTicketPromotion").style.display = "none";
+        }
+        else {
+            document.getElementById("quantityTicketPromotion").style.display = "grid";
+            document.getElementById("priceTicketPromotion").style.display = "none";
+        }
     }
     return (
         <section class="component">
@@ -37,7 +129,7 @@ function Promotion() {
                         <input placeholder='Mã khuyến mãi...' />
                         <button className='button'>Tìm</button>
                     </div>
-                    <button className='button'>Thêm khuyến mãi</button>
+                    <button className='button' style={{ background: "#330099", border: "1px solid #330099" }} onClick={OpenAddPromotionModal}>Thêm khuyến mãi</button>
                 </div>
             </div>
             <div className='table'>
@@ -112,15 +204,15 @@ function Promotion() {
                                             <p>{promotionChoosed.quantityTicket} vé</p>
                                         </div>
                                         <div className='input-modal'>
-                                            <span>Ngân sách:</span>
+                                            <span>Mức giá hóa đơn:</span>
                                             <p>{promotionChoosed.purchaseAmount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
-                                            <span>Số tiền hóa đơn:</span>
+                                            <span>Mức giảm tối đa:</span>
                                             <p>{promotionChoosed.maximumDiscount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
-                                            <span>Ngân sách còn lại:</span>
+                                            <span>Ngân sách:</span>
                                             <p>{promotionChoosed.budget.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
@@ -129,7 +221,7 @@ function Promotion() {
                                         </div>
                                     </>
                                 if (promotionChoosed.percentDiscount == null)
-                                    return  <>
+                                    return <>
                                         <div className='input-modal'>
                                             <span>Mã khuyến mãi:</span>
                                             <p>{promotionChoosed._id}</p>
@@ -151,7 +243,7 @@ function Promotion() {
                                             <p>{new Date(promotionChoosed.endDate).toLocaleDateString()}</p>
                                         </div>
                                         <div className='input-modal'>
-                                            <span>Ngân sách:</span>
+                                            <span>Mức giá hóa đơn:</span>
                                             <p>{promotionChoosed.purchaseAmount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
@@ -159,7 +251,7 @@ function Promotion() {
                                             <p>{promotionChoosed.moneyReduced.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
-                                            <span>Ngân sách còn lại:</span>
+                                            <span>Ngân sách:</span>
                                             <p>{promotionChoosed.budget.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
                                         </div>
                                         <div className='input-modal'>
@@ -172,6 +264,75 @@ function Promotion() {
                     </div>
                     <div className='footer-modal'>
                         <button className='button'>Cập nhật</button>
+                    </div>
+                </div>
+            </div>
+            <div className='modal-container' id='add-promotion-modal'>
+                <div className='modal'>
+                    <div className='header-modal'>
+                        <span>Thêm khuyến mãi</span>
+                        <img className='exit-icon' onClick={CloseAddPromotionModal} src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
+                    </div>
+                    <div className='body-modal'>
+                        <div className='input-modal'>
+                            <span>Loại khuyến mãi:</span>
+                            <select onChange={ChooseTypePromotion} id="typePromotion">
+                                <option value={"63c252a602c477dd6927806c"}>Khuyến mãi phần trăm</option>
+                                <option value={"63c252b102c477dd6927806e"}>Khuyến mãi tiền mặt</option>
+                            </select>
+                        </div>
+                        <div className='input-modal'>
+                            <span>Hình thức giảm:</span>
+                            <select onChange={ChooseWayPromotion} id="wayPromotion">
+                                <option value={"1"}>Khuyến mãi dựa vào số vé</option>
+                                <option value={"0"}>Khuyến mãi dựa vào tiền hóa đơn</option>
+                            </select>
+                        </div>
+                        <div className='input-modal'>
+                            <span>Tuyến xe:</span>
+                            <select id="routePromotion">
+                                {
+                                    routes.map(route => {
+                                        return <option value={route._id}>{route.departure.name + " đến " + route.destination.name}</option>
+                                    })
+                                }
+                            </select>
+                        </div>
+                        <div className='input-modal'>
+                            <span>Tên khuyến mãi:</span>
+                            <input id="namePromotion" />
+                        </div>
+                        <div className='input-modal' id='priceTicketPromotion'>
+                            <span>Mức tiền giảm:</span>
+                            <input type={'number'} defaultValue={0} id="priceTicketStandard" />
+                        </div>
+                        <div className='input-modal' id='quantityTicketPromotion' >
+                            <span>Số vé:</span>
+                            <input type={'number'} defaultValue={0} id="quantityTicketDiscount" />
+                        </div>
+                        <div className='input-modal' id="percent-container">
+                            <span>Phần trăm giảm:</span>
+                            <input type={'number'} defaultValue={0} max={100} id="percentDiscount" />
+                        </div>
+                        <div className='input-modal' id="money-container">
+                            <span>Số tiền giảm:</span>
+                            <input type={'number'} defaultValue={0} max={100} id="moneyDiscount" />
+                        </div>
+                        <div className='input-modal'>
+                            <span>Ngân sách:</span>
+                            <input type={'number'} defaultValue={0} id="budget" />
+                        </div>
+                        <div className='input-modal'>
+                            <span>Ngày bắt đầu:</span>
+                            <input type={'date'} id="startDatePromotion" />
+                        </div>
+                        <div className='input-modal'>
+                            <span>Ngày kết thúc:</span>
+                            <input type={'date'} id="endDatePromotion" />
+                        </div>
+                    </div>
+                    <div className='footer-modal'>
+                        <button className='button' onClick={AddPromotion}>Thêm khuyến mãi</button>
                     </div>
                 </div>
             </div>

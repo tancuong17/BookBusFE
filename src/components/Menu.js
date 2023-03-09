@@ -40,6 +40,10 @@ function Menu() {
             menuItem[5].style.background = "white";
             menuItem[5].style.color = "#000033";
         }
+        else if(path === "/admin/statistical"){
+            menuItem[6].style.background = "white";
+            menuItem[6].style.color = "#000033";
+        }
     }, [])
     function ChooseMenu(e) {
         let menuItem = document.getElementsByClassName("menu-item");
@@ -59,7 +63,7 @@ function Menu() {
                 <Link to="/admin/customer" className='menu-item' onClick={ChooseMenu}><FiUsers className='icon' /><span>Quản lý khách hàng</span></Link>
                 <Link to="/admin/bus" className='menu-item' onClick={ChooseMenu}><RiBusFill className='icon' /><span>Quản lý xe khách</span></Link>
                 <Link to="/admin/promotion" className='menu-item' onClick={ChooseMenu}><TbSpeakerphone className='icon' /><span>Quản lý khuyến mãi</span></Link>
-                <Link to="/admin/promotion" className='menu-item' onClick={ChooseMenu}><FaChartLine className='icon' /><span>Quản lý thống kê</span></Link>
+                <Link to="/admin/statistical" className='menu-item' onClick={ChooseMenu}><FaChartLine className='icon' /><span>Quản lý thống kê</span></Link>
             </section>
             <Outlet />
         </>

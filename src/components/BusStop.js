@@ -110,12 +110,13 @@ function BusStop() {
       </div>
       <div className='title-container'>
         <span className='title'>Danh sách khu vực</span>
-        <button className='button' onClick={OpenAddArea}>Thêm khu vực</button>
+        <button className='button' style={{ background: "#330099", border: "1px solid #330099" }} onClick={OpenAddArea}>Thêm khu vực</button>
       </div>
       <div className='table'>
         <table>
           <thead>
             <tr>
+              <th scope="col">STT</th>
               <th scope="col">Mã khu vực</th>
               <th scope="col">Tên khu vực</th>
               <th scope="col">Số bến xe</th>
@@ -124,13 +125,14 @@ function BusStop() {
           </thead>
           <tbody>
             {
-              places.map(place => {
+              places.map((place, index) => {
                 return <tr>
-                  <td data-label="Mã khu vực">{place.code}</td>
-                  <td data-label="Tên khu vực">{place.name}</td>
-                  <td data-label="Số bến xe">{place.busStation.length}</td>
-                  <td data-label=""><button className='button' onClick={() => OpenBusStopModal(place._id)}>Bến xe</button></td>
-                </tr>
+                        <td data-label="Mã khu vực">{index + 1}</td>
+                        <td data-label="Mã khu vực">{place.code}</td>
+                        <td data-label="Tên khu vực">{place.name}</td>
+                        <td data-label="Số bến xe">{place.busStation.length}</td>
+                        <td data-label="" className='button-container'><button className='button' onClick={() => OpenBusStopModal(place._id)}>Bến xe</button></td>
+                      </tr>
               })
             }
           </tbody>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { TbBus } from 'react-icons/tb';
 import { SiCashapp } from 'react-icons/si';
 import { RxUpdate } from 'react-icons/rx';
+import { GiSteeringWheel } from 'react-icons/gi';
 
 function BusLine() {
   const [titleBusTripModal, setTitleBusTripModal] = new useState();
@@ -166,18 +167,39 @@ function BusLine() {
     let startDatePrice = document.getElementById("startDatePrice").value;
     let endDatePrice = document.getElementById("endDatePrice").value;
     let ticketPrice = document.getElementById("ticketPrice").value;
-    let data = {
-      startDate: startDatePrice,
-      endDate: endDatePrice,
-      priceTicket: ticketPrice,
-      routeId: routeChoosed._id,
-      title: namePrice
+    let checkPrice = false;
+    prices.map(price => {
+      if (new Date(price.startDate).getTime() <= new Date(startDatePrice).getTime() && new Date(price.endDate).getTime() >= new Date(endDatePrice).getTime())
+        checkPrice = true;
+      else if (new Date(price.startDate).getTime() >= new Date(startDatePrice).getTime() && new Date(price.endDate).getTime() <= new Date(endDatePrice).getTime())
+        checkPrice = true;
+      else if (new Date(price.startDate).getTime() <= new Date(startDatePrice).getTime() && new Date(price.endDate).getTime() >= new Date(startDatePrice).getTime())
+        checkPrice = true;
+      else if (new Date(price.startDate).getTime() <= new Date(endDatePrice).getTime() && new Date(price.endDate).getTime() >= new Date(endDatePrice).getTime())
+        checkPrice = true;
+    })
+    if (checkPrice)
+      alert("Khoảng thời gian này đã có bảng giá!");
+    else {
+      let data = {
+        startDate: startDatePrice,
+        endDate: endDatePrice,
+        priceTicket: ticketPrice,
+        routeId: routeChoosed._id,
+        title: namePrice
+      }
+      axios.post('http://localhost:5005/prices/addPrice', data)
+        .then((res) => {
+          alert("Thêm bảng giá thành công!");
+          CloseAddPriceTableModal();
+        })
     }
-    axios.post('http://localhost:5005/prices/addPrice', data)
-      .then((res) => {
-        alert("Thêm bảng giá thành công!");
-        CloseAddPriceTableModal();
-      })
+  }
+  function OpenBookingTicketModal() {
+    document.getElementById("book-ticket-modal").style.display = "flex";
+  }
+  function CloseBookingTicketModal() {
+    document.getElementById("book-ticket-modal").style.display = "none";
   }
   return (
     <section class="component">
@@ -193,15 +215,21 @@ function BusLine() {
         <div id='search-exit-container'>
           <div className='search-form'>
             <select>
-              <option>---Chọn nơi đi---</option>
-              <option>Hồ Chí Minh</option>
-              <option>Đà Lạt</option>
+              <option value={"0"}>---Chọn nơi đi---</option>
+              {
+                places.map(place => {
+                  return <option value={place._id}>{place.name}</option>
+                })
+              }
             </select>
             <span>{"đến"}</span>
             <select>
-              <option>---Chọn nơi đến---</option>
-              <option>Hồ Chí Minh</option>
-              <option>Đà Lạt</option>
+              <option value={"0"}>---Chọn nơi đến---</option>
+              {
+                places.map(place => {
+                  return <option value={place._id}>{place.name}</option>
+                })
+              }
             </select>
             <button className='button'>Tìm</button>
           </div>
@@ -283,7 +311,7 @@ function BusLine() {
                           <td data-label="Ngày đến">{new Date(new Date(busTrip.endDate).getTime() - 7 * 3600 * 1000).toLocaleString()}</td>
                           <td data-label="Giá vé">{busTrip.price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
                           <td data-label="Còn trống">{busTrip.chair.filter(chair => chair.status === true).length}/{busTrip.chair.length}</td>
-                          <td data-label=""><button className='button'>Đặt vé</button></td>
+                          <td data-label="" className='button-container'><button className='button' onClick={OpenBookingTicketModal}>Đặt vé</button></td>
                         </tr>
                     })
                   }
@@ -469,7 +497,7 @@ function BusLine() {
                           <td data-label="Ngày kết thúc">{new Date(new Date(price.endDate).getTime() - 7 * 3600 * 1000).toLocaleDateString()}</td>
                           <td data-label="Giá vé">{price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
                           <td data-label="Trạng thái">{(new Date(new Date(price.startDate).getTime() - 7 * 3600 * 1000) <= new Date().getTime() && new Date(new Date(price.endDate).getTime() - 7 * 3600 * 1000).getTime() >= new Date().getTime()) ? "Đang sử dụng" : "Không sử dụng"}</td>
-                          <td data-label=""><button className='button'>Cập nhật</button></td>
+                          <td data-label="" className='button-container'><button className='button'>Cập nhật</button></td>
                         </tr>
                     })
                   }
@@ -479,6 +507,176 @@ function BusLine() {
           </div>
           <div className='footer-modal'>
             <button className='button' onClick={OpenAddPriceTableModal}>Thêm bảng giá</button>
+          </div>
+        </div>
+      </div>
+      <div className='modal-container' id='book-ticket-modal'>
+        <div className='modal'>
+          <div className='header-modal'>
+            <span>Đặt vé xe</span>
+            <img className='exit-icon' onClick={CloseBookingTicketModal} src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
+          </div>
+          <div className='body-modal' style={{ display: "grid", gridTemplateColumns: "2fr 3fr" }}>
+            <div id="chair-container">
+              <div class="floor">
+                <div>
+                  <p>Tầng 1</p>
+                  <GiSteeringWheel className='icon' />
+                </div>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-01</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-02</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-03</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-04</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }} >A-05</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-06</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-07</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-08</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-09</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-10</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-11</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-12</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-13</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-14</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-15</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>A-16</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-17</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>A-18</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="floor">
+                <p>Tầng 2</p>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-01</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-02</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-03</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-04</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }} >B-05</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-06</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-07</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-08</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-09</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-10</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-11</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-12</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-13</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-14</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-15</td>
+                    </tr>
+                    <tr>
+                      <td style={{ border: "1px solid lightgray" }}>B-16</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-17</td>
+                      <td></td>
+                      <td style={{ border: "1px solid lightgray" }}>B-18</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div id="info-customer-form">
+              <p>Thông tin khách hàng:</p>
+              <div className='input-modal'>
+                <span>Họ:</span>
+                <input />
+              </div>
+              <div className='input-modal'>
+                <span>Tên:</span>
+                <input />
+              </div>
+              <div className='input-modal'>
+                <span>Số điện thoại:</span>
+                <input />
+              </div>
+              <div className='input-modal'>
+                <span>Địa chỉ:</span>
+                <div id="address-customer">
+                  <select>
+                    <option>Tỉnh thành</option>
+                    <option>Sài Gòn</option>
+                    <option>Đà Lạt</option>
+                  </select>
+                  <select>
+                    <option>Quận huyện</option>
+                    <option>Sài Gòn</option>
+                    <option>Đà Lạt</option>
+                  </select>
+                  <select>
+                    <option>Xã phường</option>
+                    <option>Đà Lạt</option>
+                  </select>
+                </div>
+              </div>
+              <div className='input-modal'>
+                <span>Danh sách ghế: </span>
+                <p>A-01, A-02</p>
+              </div>
+              <div className='input-modal'>
+                <span>Tổng tiền vé: </span>
+                <p>500,000đ</p>
+              </div>
+              <div className='input-modal'>
+                <span>Khuyến mãi: </span>
+                <p>Giảm 10% với hóa đơn trên 500,000đ</p>
+              </div>
+              <div className='input-modal'>
+                <span>Số tiền giảm: </span>
+                <p>50,000đ</p>
+              </div>
+              <div className='input-modal'>
+                <span>Tổng tiền thanh toán: </span>
+                <p>450,000đ</p>
+              </div>
+            </div>
+          </div>
+          <div className='footer-modal'>
+            <button className='button' onClick={OpenAddPriceTableModal}>Đặt vé</button>
           </div>
         </div>
       </div>
