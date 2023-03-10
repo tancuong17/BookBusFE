@@ -7,15 +7,19 @@ import { RxUpdate } from 'react-icons/rx';
 import { GiSteeringWheel } from 'react-icons/gi';
 
 function BusLine() {
+
   const [titleBusTripModal, setTitleBusTripModal] = new useState();
   const [titlePriceTableModal, setTitlePriceTableModal] = new useState();
   const [titleUpdateBusLineModal, setTitleUpdateBusLineModal] = new useState();
+  const [titleBookticketModal, setTitleBookticketModal] = new useState();
   const [busTrips, setBusTrips] = new useState(new Array());
   const [buses, setBuses] = new useState(new Array());
   const [prices, setPrices] = new useState(new Array());
   const [places, setPlaces] = new useState(new Array());
   const [routes, setRoutes] = new useState(new Array());
   const [routeChoosed, setRouteChoosed] = new useState();
+  const [busTripChoosed, setBusTripChoosed] = new useState(new Array());
+  const [chairListChoose, setChairListChoose] = new useState(new Array());
   useEffect(() => {
     axios.get('http://localhost:5005/routes/all/getVehicleRoute')
       .then((res) => {
@@ -44,7 +48,7 @@ function BusLine() {
       if (route._id === routeId)
         setRouteChoosed(route);
     })
-    setTitleBusTripModal("Danh sách chuyến xe của tuyến " + departureName + " đến " + destinationName);
+    setTitleBusTripModal(departureName + " đến " + destinationName);
   }
   function CloseBusTripModal() {
     document.getElementById("bus-trip-modal").style.display = "none";
@@ -195,11 +199,31 @@ function BusLine() {
         })
     }
   }
-  function OpenBookingTicketModal() {
+  function OpenBookingTicketModal(busTrip, startDate) {
+    busTripChoosed[0] = busTrip;
+    let date = new Date(new Date(startDate).getTime() - 7 * 3600 * 1000).toLocaleString();
+    setTitleBookticketModal(date);
     document.getElementById("book-ticket-modal").style.display = "flex";
+    CloseBusTripModal();
   }
   function CloseBookingTicketModal() {
     document.getElementById("book-ticket-modal").style.display = "none";
+    OpenBusTripModal(routeChoosed._id, routeChoosed.departure.name, routeChoosed.destination.name);
+  }
+  function ChooseChair(e) {
+    let text = e.target.innerHTML;
+    let style = window.getComputedStyle(e.target);
+    let bg = style.getPropertyValue("background-color");
+    let listChair = [...chairListChoose];
+    if (text !== "X" && bg == "rgb(255, 255, 255)"){
+      e.target.style.background = "lightgray";
+      listChair.push(text);
+      setChairListChoose(listChair);
+    }
+    else if (text !== "X" && bg == "rgb(211, 211, 211)"){
+      e.target.style.background = "white";
+      setChairListChoose(listChair.filter(chair => chair != text));
+    }
   }
   return (
     <section class="component">
@@ -275,7 +299,7 @@ function BusLine() {
       <div className='modal-container' id='bus-trip-modal'>
         <div className='modal'>
           <div className='header-modal'>
-            <span>{titleBusTripModal}</span>
+            <span>Danh sách chuyến xe của tuyến {titleBusTripModal}</span>
             <div id='search-exit-container'>
               <div className='search-form'>
                 <input type={'date'} />
@@ -311,7 +335,7 @@ function BusLine() {
                           <td data-label="Ngày đến">{new Date(new Date(busTrip.endDate).getTime() - 7 * 3600 * 1000).toLocaleString()}</td>
                           <td data-label="Giá vé">{busTrip.price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
                           <td data-label="Còn trống">{busTrip.chair.filter(chair => chair.status === true).length}/{busTrip.chair.length}</td>
-                          <td data-label="" className='button-container'><button className='button' onClick={OpenBookingTicketModal}>Đặt vé</button></td>
+                          <td data-label="" className='button-container'><button className='button' onClick={() => OpenBookingTicketModal(busTrip, busTrip.startDate)}>Đặt vé</button></td>
                         </tr>
                     })
                   }
@@ -513,112 +537,177 @@ function BusLine() {
       <div className='modal-container' id='book-ticket-modal'>
         <div className='modal'>
           <div className='header-modal'>
-            <span>Đặt vé xe</span>
+            <span>Đặt vé xe tuyến {titleBusTripModal} - {titleBookticketModal}</span>
             <img className='exit-icon' onClick={CloseBookingTicketModal} src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
           </div>
           <div className='body-modal' style={{ display: "grid", gridTemplateColumns: "2fr 3fr" }}>
             <div id="chair-container">
-              <div class="floor">
-                <div>
-                  <p>Tầng 1</p>
-                  <GiSteeringWheel className='icon' />
-                </div>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-01</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-02</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-03</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-04</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }} >A-05</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-06</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-07</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-08</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-09</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-10</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-11</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-12</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-13</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-14</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-15</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>A-16</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-17</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>A-18</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="floor">
-                <p>Tầng 2</p>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-01</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-02</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-03</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-04</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }} >B-05</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-06</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-07</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-08</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-09</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-10</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-11</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-12</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-13</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-14</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-15</td>
-                    </tr>
-                    <tr>
-                      <td style={{ border: "1px solid lightgray" }}>B-16</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-17</td>
-                      <td></td>
-                      <td style={{ border: "1px solid lightgray" }}>B-18</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              {
+                busTripChoosed.map(busTrip => {
+                  if (busTrip.carType == "Xe Limousine")
+                    return <>
+                      <div class="floor">
+                        <div>
+                          <p>Tầng 1</p>
+                          <GiSteeringWheel className='icon' />
+                        </div>
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "A-01"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "A-02"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "A-03"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "A-04"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[4].status) ? "X" : "A-05"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "A-06"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "A-07"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "A-08"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "A-09"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "A-10"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "A-11"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "A-12"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "A-13"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "A-14"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "A-15"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "A-16"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "A-17"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "A-18"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="floor">
+                        <p>Tầng 2</p>
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "B-01"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "B-02"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "B-03"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "B-04"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[22].status) ? "X" : "B-05"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "B-06"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[24].status) ? "X" : "B-07"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[25].status) ? "X" : "B-08"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[26].status) ? "X" : "B-09"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[27].status) ? "X" : "B-10"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[28].status) ? "X" : "B-11"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[29].status) ? "X" : "B-12"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[30].status) ? "X" : "B-13"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[31].status) ? "X" : "B-14"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[32].status) ? "X" : "B-15"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[33].status) ? "X" : "B-16"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[34].status) ? "X" : "B-17"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[35].status) ? "X" : "B-18"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  else
+                    return <>
+                      <div class="floor" id="normalBus">
+                        <div>
+                          <p>Tầng 1</p>
+                          <GiSteeringWheel className='icon' />
+                        </div>
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "01"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "02"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "03"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "04"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[4].status) ? "X" : "05"}</td>
+                              <td style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "06"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "07"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "08"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "09"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "10"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "11"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "12"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "13"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "14"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "15"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "16"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "17"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "18"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "19"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "20"}</td>
+                            </tr>
+                            <tr>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "21"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "22"}</td>
+                              <td></td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[22].status) ? "X" : "23"}</td>
+                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "24"}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="floor" id="floor-empty">
+                        <p>X</p>
+                      </div>
+                    </>
+                })
+              }
             </div>
             <div id="info-customer-form">
               <p>Thông tin khách hàng:</p>
@@ -655,7 +744,7 @@ function BusLine() {
               </div>
               <div className='input-modal'>
                 <span>Danh sách ghế: </span>
-                <p>A-01, A-02</p>
+                <p>{chairListChoose.toString()}</p>
               </div>
               <div className='input-modal'>
                 <span>Tổng tiền vé: </span>

@@ -321,8 +321,22 @@ table td {
     z-index: 500;
 }
 
-#book-ticket-modal td{
-    transform: rotate(90deg);
+.floor td{
+    transform: none;
+}
+
+#normalBus td{
+    transform: none;
+}
+
+#floor-empty{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#floor-empty p{
+    font-size: 2rem;
 }
 
 #chair-container{
@@ -335,6 +349,11 @@ table td {
     display: grid;
     grid-template-rows: 1fr 6fr;
     border: 1px solid lightgray;
+}
+
+.floor td{
+    cursor: pointer;
+    background: white;
 }
 
 #info-customer-form{
@@ -440,7 +459,7 @@ table td {
 
 .input-modal select, .input-modal input{
     font-size: 1rem;
-    padding: 0.5rem;
+    padding: 0.4rem;
 }
 
 .input-modal img{
