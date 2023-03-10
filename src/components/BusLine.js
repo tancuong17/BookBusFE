@@ -7,7 +7,6 @@ import { RxUpdate } from 'react-icons/rx';
 import { GiSteeringWheel } from 'react-icons/gi';
 
 function BusLine() {
-
   const [titleBusTripModal, setTitleBusTripModal] = new useState();
   const [titlePriceTableModal, setTitlePriceTableModal] = new useState();
   const [titleUpdateBusLineModal, setTitleUpdateBusLineModal] = new useState();
@@ -18,8 +17,13 @@ function BusLine() {
   const [places, setPlaces] = new useState(new Array());
   const [routes, setRoutes] = new useState(new Array());
   const [routeChoosed, setRouteChoosed] = new useState();
+  const [promotionChoosed, setPromotionChoosed] = new useState();
   const [busTripChoosed, setBusTripChoosed] = new useState(new Array());
   const [chairListChoose, setChairListChoose] = new useState(new Array());
+  const [priceTicket, setPriceTicket] = new useState(0);
+  const [priceDiscount, setpriceDiscount] = new useState(0);
+  const [totalPriceTicket, setTotalPriceTicket] = new useState(0);
+  const [promotions, setPromotions] = new useState(new Array());
   useEffect(() => {
     axios.get('http://localhost:5005/routes/all/getVehicleRoute')
       .then((res) => {
@@ -41,14 +45,24 @@ function BusLine() {
       .then((res) => {
         setPrices(res.data);
       })
+    axios.get('http://localhost:5005/promotions/all/getPromotion')
+      .then((res) => {
+        setPromotions(res.data);
+      });
   }, [routes, busTrips, prices]);
-  function OpenBusTripModal(routeId, departureName, destinationName) {
-    document.getElementById("bus-trip-modal").style.display = "flex";
-    routes.map(route => {
-      if (route._id === routeId)
-        setRouteChoosed(route);
-    })
+  function OpenBusTripModal(route, departureName, destinationName) {
+    setRouteChoosed(route);
     setTitleBusTripModal(departureName + " đến " + destinationName);
+    let checkPromotion = true;
+    promotions.map(promotion => {
+      if (promotion.routeId == route._id && new Date().getTime() >= new Date(promotion.startDate).getTime() && new Date().getTime() <= new Date(promotion.endDate).getTime()) {
+        setPromotionChoosed(promotion);
+        checkPromotion = false;
+      }
+    })
+    if (checkPromotion == true)
+      setPromotionChoosed(null);
+    document.getElementById("bus-trip-modal").style.display = "flex";
   }
   function CloseBusTripModal() {
     document.getElementById("bus-trip-modal").style.display = "none";
@@ -62,11 +76,8 @@ function BusLine() {
   function CloseAddBusTripModal() {
     document.getElementById("add-bus-trip-modal").style.display = "none";
   }
-  function OpenUpdateBusLineModal(routeId, departureName, destinationName) {
-    routes.map(route => {
-      if (route._id === routeId)
-        setRouteChoosed(route);
-    })
+  function OpenUpdateBusLineModal(route, departureName, destinationName) {
+    setRouteChoosed(route);
     setTitleUpdateBusLineModal("Cập nhật tuyến xe " + departureName + " đến " + destinationName);
     document.getElementById("update-bus-line-modal").style.display = "flex";
   }
@@ -79,12 +90,9 @@ function BusLine() {
   function CloseAddBusLineModal() {
     document.getElementById("add-bus-line-modal").style.display = "none";
   }
-  function OpenPriceTableModal(routeId, departureName, destinationName) {
+  function OpenPriceTableModal(route, departureName, destinationName) {
     document.getElementById("price-table-modal").style.display = "flex";
-    routes.map(route => {
-      if (route._id === routeId)
-        setRouteChoosed(route);
-    })
+    setRouteChoosed(route);
     setTitlePriceTableModal("Bảng giá của tuyến " + departureName + " đến " + destinationName);
   }
   function ClosePriceTableModal() {
@@ -207,22 +215,98 @@ function BusLine() {
     CloseBusTripModal();
   }
   function CloseBookingTicketModal() {
+    setChairListChoose([]);
+    setPriceTicket(0);
+    setTotalPriceTicket(0);
+    setpriceDiscount(0);
+    let chair = document.getElementsByClassName("chair");
+    for (let i = 0; i < chair.length; i++) {
+      chair[i].style.background = "white";
+    }
     document.getElementById("book-ticket-modal").style.display = "none";
-    OpenBusTripModal(routeChoosed._id, routeChoosed.departure.name, routeChoosed.destination.name);
+    OpenBusTripModal(routeChoosed, routeChoosed.departure.name, routeChoosed.destination.name);
   }
   function ChooseChair(e) {
     let text = e.target.innerHTML;
     let style = window.getComputedStyle(e.target);
     let bg = style.getPropertyValue("background-color");
     let listChair = [...chairListChoose];
-    if (text !== "X" && bg == "rgb(255, 255, 255)"){
+    let totalPrice = priceTicket;
+    let totalMoney = 0;
+    if (text !== "X" && bg == "rgb(255, 255, 255)") {
+      totalPrice = priceTicket + routeChoosed.price.price;
+      if (promotionChoosed != null) {
+        if (promotionChoosed.moneyReduced != null) {
+          if (promotionChoosed.purchaseAmount != null && totalPrice > promotionChoosed.purchaseAmount) {
+            setpriceDiscount(promotionChoosed.moneyReduced);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else if (promotionChoosed.quantityTicket != null && chairListChoose.length >= promotionChoosed.quantityTicket) {
+            setpriceDiscount(promotionChoosed.moneyReduced);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else
+            totalMoney = totalPrice;
+        }
+        else if (promotionChoosed.percentDiscount != null) {
+          if (promotionChoosed.purchaseAmount != null && totalPrice > promotionChoosed.purchaseAmount) {
+            setpriceDiscount((priceTicket + routeChoosed.price.price) / promotionChoosed.percentDiscount);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else if (promotionChoosed.quantityTicket != null && chairListChoose.length >= promotionChoosed.quantityTicket) {
+            setpriceDiscount((priceTicket + routeChoosed.price.price) / promotionChoosed.percentDiscount);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else
+            totalMoney = totalPrice;
+        }
+      }
+      else
+        totalMoney = totalPrice;
       e.target.style.background = "lightgray";
       listChair.push(text);
       setChairListChoose(listChair);
+      setPriceTicket(priceTicket + routeChoosed.price.price);
+      setTotalPriceTicket(totalMoney);
     }
-    else if (text !== "X" && bg == "rgb(211, 211, 211)"){
+    else if (text !== "X" && bg == "rgb(211, 211, 211)") {
+      totalPrice = priceTicket - routeChoosed.price.price;
+      if (promotionChoosed != null) {
+        if (promotionChoosed.moneyReduced != null) {
+          if (promotionChoosed.purchaseAmount != null && totalPrice > promotionChoosed.purchaseAmount) {
+            setpriceDiscount(promotionChoosed.moneyReduced);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else if (promotionChoosed.quantityTicket != null && chairListChoose.length >= promotionChoosed.quantityTicket) {
+            setpriceDiscount(promotionChoosed.moneyReduced);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else {
+            setpriceDiscount(0);
+            totalMoney = totalPrice;
+          }
+        }
+        else if (promotionChoosed.percentDiscount != null) {
+          if (promotionChoosed.purchaseAmount != null && totalPrice > promotionChoosed.purchaseAmount) {
+            setpriceDiscount((priceTicket + routeChoosed.price.price) / promotionChoosed.percentDiscount);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else if (promotionChoosed.quantityTicket != null && chairListChoose.length >= promotionChoosed.quantityTicket) {
+            setpriceDiscount((priceTicket + routeChoosed.price.price) / promotionChoosed.percentDiscount);
+            totalMoney = totalPrice - promotionChoosed.moneyReduced;
+          }
+          else {
+            setpriceDiscount(0);
+            totalMoney = totalPrice;
+          }
+        }
+      }
+      else
+        totalMoney = totalPrice;
       e.target.style.background = "white";
       setChairListChoose(listChair.filter(chair => chair != text));
+      setPriceTicket(priceTicket - routeChoosed.price.price);
+      setTotalPriceTicket(totalMoney);
     }
   }
   return (
@@ -286,9 +370,9 @@ function BusLine() {
                   <td data-label="Giá vé">{route.price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
                   <td data-label="Trạng thái">{(route.status) ? "Đang hoạt động" : "Ngưng hoạt động"}</td>
                   <td data-label="" className='button-container'>
-                    <button style={{ background: "#006633", border: "1px solid #006633" }} className='button' onClick={() => OpenBusTripModal(route._id, route.departure.name, route.destination.name)}><TbBus className='icon' /></button>
-                    <button style={{ background: "#FF9900", border: "1px solid #FF9900" }} className='button' onClick={() => OpenPriceTableModal(route._id, route.departure.name, route.destination.name)}><SiCashapp className='icon' /></button>
-                    <button className='button' onClick={() => OpenUpdateBusLineModal(route._id, route.departure.name, route.destination.name)}><RxUpdate className='icon' /></button>
+                    <button style={{ background: "#006633", border: "1px solid #006633" }} className='button' onClick={() => OpenBusTripModal(route, route.departure.name, route.destination.name)}><TbBus className='icon' /></button>
+                    <button style={{ background: "#FF9900", border: "1px solid #FF9900" }} className='button' onClick={() => OpenPriceTableModal(route, route.departure.name, route.destination.name)}><SiCashapp className='icon' /></button>
+                    <button className='button' onClick={() => OpenUpdateBusLineModal(route, route.departure.name, route.destination.name)}><RxUpdate className='icon' /></button>
                   </td>
                 </tr>
               })
@@ -554,46 +638,46 @@ function BusLine() {
                         <table>
                           <tbody>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "A-01"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "A-01"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "A-02"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "A-02"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "A-03"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "A-03"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "A-04"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "A-04"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[4].status) ? "X" : "A-05"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[4].status) ? "X" : "A-05"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "A-06"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "A-06"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "A-07"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "A-07"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "A-08"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "A-08"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "A-09"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "A-09"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "A-10"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "A-10"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "A-11"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "A-11"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "A-12"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "A-12"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "A-13"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "A-13"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "A-14"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "A-14"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "A-15"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "A-15"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "A-16"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "A-16"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "A-17"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "A-17"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "A-18"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "A-18"}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -603,46 +687,46 @@ function BusLine() {
                         <table>
                           <tbody>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "B-01"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "B-01"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "B-02"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "B-02"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "B-03"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "B-03"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "B-04"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "B-04"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[22].status) ? "X" : "B-05"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }} >{(busTrip.chair[22].status) ? "X" : "B-05"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "B-06"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "B-06"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[24].status) ? "X" : "B-07"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[24].status) ? "X" : "B-07"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[25].status) ? "X" : "B-08"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[25].status) ? "X" : "B-08"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[26].status) ? "X" : "B-09"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[26].status) ? "X" : "B-09"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[27].status) ? "X" : "B-10"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[27].status) ? "X" : "B-10"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[28].status) ? "X" : "B-11"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[28].status) ? "X" : "B-11"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[29].status) ? "X" : "B-12"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[29].status) ? "X" : "B-12"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[30].status) ? "X" : "B-13"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[30].status) ? "X" : "B-13"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[31].status) ? "X" : "B-14"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[31].status) ? "X" : "B-14"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[32].status) ? "X" : "B-15"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[32].status) ? "X" : "B-15"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[33].status) ? "X" : "B-16"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[33].status) ? "X" : "B-16"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[34].status) ? "X" : "B-17"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[34].status) ? "X" : "B-17"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[35].status) ? "X" : "B-18"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[35].status) ? "X" : "B-18"}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -658,46 +742,46 @@ function BusLine() {
                         <table>
                           <tbody>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "01"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "02"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[0].status) ? "X" : "01"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[1].status) ? "X" : "02"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "03"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "04"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[2].status) ? "X" : "03"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[3].status) ? "X" : "04"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[4].status) ? "X" : "05"}</td>
-                              <td style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "06"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[4].status) ? "X" : "05"}</td>
+                              <td className='chair' style={{ border: "1px solid lightgray" }}>{(busTrip.chair[5].status) ? "X" : "06"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "07"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "08"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[6].status) ? "X" : "07"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[7].status) ? "X" : "08"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "09"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "10"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[8].status) ? "X" : "09"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[9].status) ? "X" : "10"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "11"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "12"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[10].status) ? "X" : "11"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[11].status) ? "X" : "12"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "13"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "14"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[12].status) ? "X" : "13"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[13].status) ? "X" : "14"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "15"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "16"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[14].status) ? "X" : "15"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[15].status) ? "X" : "16"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "17"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "18"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[16].status) ? "X" : "17"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[17].status) ? "X" : "18"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "19"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "20"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[18].status) ? "X" : "19"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[19].status) ? "X" : "20"}</td>
                             </tr>
                             <tr>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "21"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "22"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[20].status) ? "X" : "21"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[21].status) ? "X" : "22"}</td>
                               <td></td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[22].status) ? "X" : "23"}</td>
-                              <td onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "24"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[22].status) ? "X" : "23"}</td>
+                              <td className='chair' onClick={ChooseChair} style={{ border: "1px solid lightgray" }}>{(busTrip.chair[23].status) ? "X" : "24"}</td>
                             </tr>
                           </tbody>
                         </table>
@@ -712,15 +796,15 @@ function BusLine() {
             <div id="info-customer-form">
               <p>Thông tin khách hàng:</p>
               <div className='input-modal'>
+                <span>Số điện thoại:</span>
+                <input />
+              </div>
+              <div className='input-modal'>
                 <span>Họ:</span>
                 <input />
               </div>
               <div className='input-modal'>
                 <span>Tên:</span>
-                <input />
-              </div>
-              <div className='input-modal'>
-                <span>Số điện thoại:</span>
                 <input />
               </div>
               <div className='input-modal'>
@@ -748,19 +832,19 @@ function BusLine() {
               </div>
               <div className='input-modal'>
                 <span>Tổng tiền vé: </span>
-                <p>500,000đ</p>
+                <p>{priceTicket.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
               </div>
               <div className='input-modal'>
                 <span>Khuyến mãi: </span>
-                <p>Giảm 10% với hóa đơn trên 500,000đ</p>
+                <p>{(promotionChoosed != null) ? promotionChoosed.title : "Không"}</p>
               </div>
               <div className='input-modal'>
                 <span>Số tiền giảm: </span>
-                <p>50,000đ</p>
+                <p>{(priceDiscount != 0) ? priceDiscount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") : "0"}đ</p>
               </div>
               <div className='input-modal'>
                 <span>Tổng tiền thanh toán: </span>
-                <p>450,000đ</p>
+                <p>{(totalPriceTicket != 0) ? totalPriceTicket.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") : "0"}đ</p>
               </div>
             </div>
           </div>
