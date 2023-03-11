@@ -5,11 +5,18 @@ import axios from 'axios';
 function Bus() {
     const [bus, setBus] = new useState(new Array());
     useEffect(() => {
+        LoadDataModal();
         axios.get('http://localhost:5005/cars/all/getCars')
             .then((res) => {
                 setBus(res.data);
             });
     }, [bus]);
+    function LoadDataModal() {
+        if (bus.length == 0)
+            document.getElementById("load-data-modal").style.display = "flex";
+        else
+            document.getElementById("load-data-modal").style.display = "none";
+    }
     function OpenAddBusModal() {
         document.getElementById("add-bus-modal").style.display = "flex";
     }
@@ -21,21 +28,21 @@ function Bus() {
         let typeBus = document.getElementById("typeBus").value;
         let checkBus = false;
         bus.map(bus => {
-            if(bus.licensePlates == licensePlates)
+            if (bus.licensePlates == licensePlates)
                 checkBus = true;
         })
-        if(checkBus)
+        if (checkBus)
             alert("Biển số xe này đã tồn tại!");
-        else{
+        else {
             let data = {
                 idTypeCar: typeBus,
                 licensePlates: licensePlates
             }
             axios.post('http://localhost:5005/cars/addCar', data)
-            .then((res) => {
-                alert("Thêm xe khách thành công!");
-                CloseAddBusModal();
-            });
+                .then((res) => {
+                    alert("Thêm xe khách thành công!");
+                    CloseAddBusModal();
+                });
         }
     }
     return (
@@ -72,16 +79,16 @@ function Bus() {
                     <tbody>
                         {
                             bus.map((bus, index) => {
-                                return  <tr>
-                                            <td data-label="Mã xe">{index + 1}</td>
-                                            <td data-label="Biển số xe">{bus.licensePlates}</td>
-                                            <td data-label="Loại xe">{bus.carType.type}</td>
-                                            <td data-label="Số chỗ">{bus.carType.chair.length}</td>
-                                            <td data-label="Trạng thái">{(bus.status) ? "Đang hoạt động" : "Ngưng hoạt động"}</td>
-                                            <td data-label="" className='button-container'>
-                                                <button className='button'>Cập nhật</button>
-                                            </td>
-                                        </tr>
+                                return <tr>
+                                    <td data-label="Mã xe">{index + 1}</td>
+                                    <td data-label="Biển số xe">{bus.licensePlates}</td>
+                                    <td data-label="Loại xe">{bus.carType.type}</td>
+                                    <td data-label="Số chỗ">{bus.carType.chair.length}</td>
+                                    <td data-label="Trạng thái">{(bus.status) ? "Đang hoạt động" : "Ngưng hoạt động"}</td>
+                                    <td data-label="" className='button-container'>
+                                        <button className='button'>Cập nhật</button>
+                                    </td>
+                                </tr>
                             })
                         }
                     </tbody>
@@ -91,12 +98,12 @@ function Bus() {
                 <div className='modal'>
                     <div className='header-modal'>
                         <span>Thêm xe khách</span>
-                        <img className='exit-icon' onClick={CloseAddBusModal}  src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
+                        <img className='exit-icon' onClick={CloseAddBusModal} src='https://cdn-icons-png.flaticon.com/512/1828/1828778.png' alt='exit' />
                     </div>
                     <div className='body-modal'>
                         <div className='input-modal'>
                             <span>Biển số xe:</span>
-                            <input id="licensePlates"/>
+                            <input id="licensePlates" />
                         </div>
                         <div className='input-modal' id="percent-container">
                             <span>Loại xe:</span>
@@ -109,6 +116,11 @@ function Bus() {
                     <div className='footer-modal'>
                         <button className='button' onClick={AddBus}>Thêm xe khách</button>
                     </div>
+                </div>
+            </div>
+            <div className='modal-container' id='load-data-modal'>
+                <div className='modal'>
+                    <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
                 </div>
             </div>
         </section>

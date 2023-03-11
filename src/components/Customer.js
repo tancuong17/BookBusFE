@@ -5,11 +5,18 @@ import axios from 'axios';
 function Customer() {
   const [customers, setCustomers] = new useState(new Array());
   useEffect(() => {
+    LoadDataModal();
     axios.get('http://localhost:5005/customers/all/getCustomer')
       .then((res) => {
         setCustomers(res.data);
       });
   }, [customers]);
+  function LoadDataModal() {
+    if(customers.length == 0)
+      document.getElementById("load-data-modal").style.display = "flex";
+    else
+      document.getElementById("load-data-modal").style.display = "none";
+  }
   return (
     <section class="component">
       <div className='header'>
@@ -51,6 +58,11 @@ function Customer() {
             }
           </tbody>
         </table>
+      </div>
+      <div className='modal-container' id='load-data-modal'>
+        <div className='modal'>
+          <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
+        </div>
       </div>
     </section>
   );

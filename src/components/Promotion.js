@@ -7,6 +7,7 @@ function Promotion() {
     const [routes, setRoutes] = new useState(new Array());
     const [promotionChoosed, setPromotionChoosed] = new useState(new Array());
     useEffect(() => {
+        LoadDataModal();
         axios.get('http://localhost:5005/promotions/all/getPromotion')
             .then((res) => {
                 setPromotions(res.data);
@@ -16,6 +17,12 @@ function Promotion() {
                 setRoutes(res.data);
             })
     }, [promotions]);
+    function LoadDataModal() {
+        if (promotions.length == 0)
+            document.getElementById("load-data-modal").style.display = "flex";
+        else
+            document.getElementById("load-data-modal").style.display = "none";
+    }
     function OpenDetailPromotionModal(promotionId) {
         promotions.map(promotion => {
             if (promotion._id === promotionId)
@@ -38,7 +45,7 @@ function Promotion() {
         let typePromotion = document.getElementById("add-promotion-modal").value;
         let namePromotion = document.getElementById("namePromotion").value;
         let wayPromotion = document.getElementById("wayPromotion").value;
-        let routePromotion = document.getElementById("routePromotion").value;
+        let routePromotion = document.getElementById("routePromotion");
         let priceTicketStandard = document.getElementById("priceTicketStandard").value;
         let quantityTicketDiscount = document.getElementById("quantityTicketDiscount").value;
         let percentDiscount = document.getElementById("percentDiscount").value;
@@ -46,49 +53,65 @@ function Promotion() {
         let budget = document.getElementById("budget").value;
         let startDatePromotion = document.getElementById("startDatePromotion").value;
         let endDatePromotion = document.getElementById("endDatePromotion").value;
-        if (wayPromotion == "0")
-            quantityTicketDiscount = null;
-        else
-            priceTicketStandard = null;
-        if (typePromotion == "63c252a602c477dd6927806c") {
-            let data = {
-                startDate: startDatePromotion,
-                endDate: endDatePromotion,
-                percentDiscount: percentDiscount,
-                routeId: routePromotion,
-                quantityTicket: quantityTicketDiscount,
-                title: namePromotion,
-                purchaseAmount: null,
-                moneyReduced: null,
-                maximumDiscount: priceTicketStandard,
-                budget: budget,
-                promotionType: typePromotion,
-            };
-            axios.post('http://localhost:5005/promotions/addPromotion', data)
-            .then((res) => {
-                alert("Thêm khuyến mãi thành công!");
-                CloseAddPromotionModal();
-            })
-        }
+        let checkPromotion = false;
+        promotions.map(promotion => {
+            if (promotion.routeId == routePromotion.value)
+                if (new Date(promotion.startDate).getTime() <= new Date(startDatePromotion).getTime() && new Date(promotion.endDate).getTime() >= new Date(endDatePromotion).getTime())
+                    checkPromotion = true;
+                else if (new Date(promotion.startDate).getTime() >= new Date(startDatePromotion).getTime() && new Date(promotion.endDate).getTime() <= new Date(endDatePromotion).getTime())
+                    checkPromotion = true;
+                else if (new Date(promotion.startDate).getTime() <= new Date(startDatePromotion).getTime() && new Date(promotion.endDate).getTime() >= new Date(startDatePromotion).getTime())
+                    checkPromotion = true;
+                else if (new Date(promotion.startDate).getTime() <= new Date(endDatePromotion).getTime() && new Date(promotion.endDate).getTime() >= new Date(endDatePromotion).getTime())
+                    checkPromotion = true;
+        })
+        if (checkPromotion)
+            alert("Khoảng thời gian này trong tuyến " + routePromotion.options[routePromotion.selectedIndex].text + " đã tồn tại khuyến mãi!");
         else {
-            let data = {
-                startDate: startDatePromotion,
-                endDate: endDatePromotion,
-                percentDiscount: null,
-                routeId: routePromotion,
-                quantityTicket: quantityTicketDiscount,
-                title: namePromotion,
-                purchaseAmount: priceTicketStandard,
-                moneyReduced: moneyDiscount,
-                maximumDiscount: null,
-                budget: budget,
-                promotionType: typePromotion,
-            };
-            axios.post('http://localhost:5005/promotions/addPromotion', data)
-            .then((res) => {
-                alert("Thêm khuyến mãi thành công!");
-                CloseAddPromotionModal();
-            })
+            if (wayPromotion == "0")
+                quantityTicketDiscount = null;
+            else
+                priceTicketStandard = null;
+            if (typePromotion == "63c252a602c477dd6927806c") {
+                let data = {
+                    startDate: startDatePromotion,
+                    endDate: endDatePromotion,
+                    percentDiscount: percentDiscount,
+                    routeId: routePromotion,
+                    quantityTicket: quantityTicketDiscount,
+                    title: namePromotion,
+                    purchaseAmount: null,
+                    moneyReduced: null,
+                    maximumDiscount: priceTicketStandard,
+                    budget: budget,
+                    promotionType: typePromotion,
+                };
+                axios.post('http://localhost:5005/promotions/addPromotion', data)
+                    .then((res) => {
+                        alert("Thêm khuyến mãi thành công!");
+                        CloseAddPromotionModal();
+                    })
+            }
+            else {
+                let data = {
+                    startDate: startDatePromotion,
+                    endDate: endDatePromotion,
+                    percentDiscount: null,
+                    routeId: routePromotion,
+                    quantityTicket: quantityTicketDiscount,
+                    title: namePromotion,
+                    purchaseAmount: priceTicketStandard,
+                    moneyReduced: moneyDiscount,
+                    maximumDiscount: null,
+                    budget: budget,
+                    promotionType: typePromotion,
+                };
+                axios.post('http://localhost:5005/promotions/addPromotion', data)
+                    .then((res) => {
+                        alert("Thêm khuyến mãi thành công!");
+                        CloseAddPromotionModal();
+                    })
+            }
         }
     }
     function ChooseTypePromotion() {
@@ -201,7 +224,7 @@ function Promotion() {
                                         </div>
                                         <div className='input-modal'>
                                             <span>Số vé:</span>
-                                            <p>{promotionChoosed.quantityTicket} vé</p>
+                                            <p>{(promotionChoosed.quantityTicket != null) ? promotionChoosed.quantityTicket : "0"} vé</p>
                                         </div>
                                         <div className='input-modal'>
                                             <span>Mức giá hóa đơn:</span>
@@ -245,6 +268,10 @@ function Promotion() {
                                         <div className='input-modal'>
                                             <span>Mức giá hóa đơn:</span>
                                             <p>{promotionChoosed.purchaseAmount.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</p>
+                                        </div>
+                                        <div className='input-modal'>
+                                            <span>Số vé:</span>
+                                            <p>{(promotionChoosed.quantityTicket != null) ? promotionChoosed.quantityTicket : "0"} vé</p>
                                         </div>
                                         <div className='input-modal'>
                                             <span>Số tiền giảm:</span>
@@ -334,6 +361,11 @@ function Promotion() {
                     <div className='footer-modal'>
                         <button className='button' onClick={AddPromotion}>Thêm khuyến mãi</button>
                     </div>
+                </div>
+            </div>
+            <div className='modal-container' id='load-data-modal'>
+                <div className='modal'>
+                    <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
                 </div>
             </div>
         </section>

@@ -25,6 +25,7 @@ function BusLine() {
   const [totalPriceTicket, setTotalPriceTicket] = new useState(0);
   const [promotions, setPromotions] = new useState(new Array());
   useEffect(() => {
+    LoadDataModal();
     axios.get('http://localhost:5005/routes/all/getVehicleRoute')
       .then((res) => {
         setBusTrips(res.data);
@@ -50,6 +51,12 @@ function BusLine() {
         setPromotions(res.data);
       });
   }, [routes, busTrips, prices]);
+  function LoadDataModal() {
+    if(routes.length == 0)
+      document.getElementById("load-data-modal").style.display = "flex";
+    else
+      document.getElementById("load-data-modal").style.display = "none";
+  }
   function OpenBusTripModal(route, departureName, destinationName) {
     setRouteChoosed(route);
     setTitleBusTripModal(departureName + " đến " + destinationName);
@@ -129,7 +136,7 @@ function BusLine() {
         intendTime: timeBusLine,
         departureId: provinceFromAdd,
         destinationId: provinceToAdd,
-        code: code[0] + "-" + code[1]
+        code: code
       };
       axios.post('http://localhost:5005/places/addRoute', data)
         .then((res) => {
@@ -367,7 +374,7 @@ function BusLine() {
                   <td data-label="Nơi đến">{route.destination.name}</td>
                   <td data-label="Loại xe">{route.carType}</td>
                   <td data-label="Số giờ">{route.intendTime}</td>
-                  <td data-label="Giá vé">{route.price.price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}đ</td>
+                  <td data-label="Giá vé">{(route.price.length != 0) ? route.price[0].price.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") + "đ" : "Chưa có"}</td>
                   <td data-label="Trạng thái">{(route.status) ? "Đang hoạt động" : "Ngưng hoạt động"}</td>
                   <td data-label="" className='button-container'>
                     <button style={{ background: "#006633", border: "1px solid #006633" }} className='button' onClick={() => OpenBusTripModal(route, route.departure.name, route.destination.name)}><TbBus className='icon' /></button>
@@ -851,6 +858,11 @@ function BusLine() {
           <div className='footer-modal'>
             <button className='button' onClick={OpenAddPriceTableModal}>Đặt vé</button>
           </div>
+        </div>
+      </div>
+      <div className='modal-container' id='load-data-modal'>
+        <div className='modal'>
+          <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
         </div>
       </div>
     </section>

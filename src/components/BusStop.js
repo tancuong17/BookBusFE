@@ -11,6 +11,7 @@ function BusStop() {
   const [districts, setDistricts] = new useState(new Array());
   const [wards, setWards] = new useState(new Array());
   useEffect(() => {
+    LoadDataModal();
     data.map((data) => {
       provinceData.push({ id: data.id, name: data.name });
     });
@@ -21,6 +22,12 @@ function BusStop() {
       })
     setProvinces(provinceData);
   }, [places]);
+  function LoadDataModal() {
+    if(places.length == 0)
+      document.getElementById("load-data-modal").style.display = "flex";
+    else
+      document.getElementById("load-data-modal").style.display = "none";
+  }
   provinces.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
   function ChooseProvince() {
     let province = document.getElementById("province").value;
@@ -281,6 +288,11 @@ function BusStop() {
           </div>
         </div>
       </div >
+      <div className='modal-container' id='load-data-modal'>
+        <div className='modal'>
+          <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
+        </div>
+      </div>
     </section >
   );
 }

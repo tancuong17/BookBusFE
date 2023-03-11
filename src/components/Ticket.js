@@ -7,11 +7,18 @@ function Ticket() {
   const componentRef = useRef();
   const [tickets, setTickets] = new useState(new Array());
   useEffect(() => {
+    LoadDataModal();
     axios.get('http://localhost:5005/tickets/all/getTicket')
       .then((res) => {
         setTickets(res.data);
       });
   }, [tickets]);
+  function LoadDataModal() {
+    if(tickets.length == 0)
+      document.getElementById("load-data-modal").style.display = "flex";
+    else
+      document.getElementById("load-data-modal").style.display = "none";
+  }
   function OpenTicketModal(idTicket) {
     tickets.map(ticket => {
       if (ticket._id === idTicket) {
@@ -45,7 +52,7 @@ function Ticket() {
         <p id="logo">FURISAS</p>
         <div>
           <span>Xin chào, Tấn</span>
-          <button className='button' style={{background: "#CC0000", border: "1px solid #CC0000"}}>Đăng xuất</button>
+          <button className='button' style={{ background: "#CC0000", border: "1px solid #CC0000" }}>Đăng xuất</button>
         </div>
       </div>
       <div className='title-container'>
@@ -139,6 +146,11 @@ function Ticket() {
             <button className='button' onClick={handlePrint}>In vé</button>
             <button className='button'>Hủy vé</button>
           </div>
+        </div>
+      </div>
+      <div className='modal-container' id='load-data-modal'>
+        <div className='modal'>
+          <img src='https://img.pikbest.com/png-images/20190918/cartoon-snail-loading-loading-gif-animation_2734139.png!bw700' alt="load" />
         </div>
       </div>
     </section>

@@ -408,6 +408,13 @@ table td {
     grid-template-rows: 1fr 8fr 1fr;
 }
 
+#load-data-modal .modal{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 #detail-promotion-modal .modal{
     width: 50%;
     height: 80%;
